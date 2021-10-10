@@ -1,0 +1,125 @@
+service: nvdb2osm-pipeline
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  region: eu-north-1
+  runtime: nodejs14.x
+  environment:
+    # BUCKET_NAME: ${self:custom.dataBucketName}
+  iamManagedPolicies:
+    # - !Ref DataBucketAccessManagedPolicy
+    - !Ref Nvdb2OsmPipelineLaunchEc2InstancesPolicy
+    # - !Ref InvokeLambdaPolicy
+
+functions:
+  startNvdb2OsmEC2:
+    handler: lambda/start-nvdb2osm-ec2.handler
+    logRetentionInDays: 7
+    timeout: 120 # 2 minutes
+    memorySize: 128
+    events:
+      # run at 6:00 on each 21st (as it seems that most files are being updated on the 20st of each month)
+      - schedule: cron(0 8 21 * ? *)
+    environment:
+      #INSTANCE_PROFILE: !Ref Ec2InstanceProfileForDataConversion
+
+plugins:
+  - serverless-plugin-log-retention
+
+custom:
+  logRetentionInDays: 7 # global retention for logs
+  #dataBucketName: nvdb-osm-map-data
+
+resources:
+  Resources:
+    # UploadBucket:
+    #   Type: AWS::S3::Bucket
+    #   Properties:
+    #     BucketName: ${self:custom.dataBucketName}
+    #     WebsiteConfiguration:
+    #       ErrorDocument: 404.html
+    #       IndexDocument: index.html
+    #     LifecycleConfiguration:
+    #       Rules:
+    #         - Id: RemoveOldTiles
+    #           Prefix: tiles
+    #           Status: Enabled
+    #           ExpirationInDays: 20
+    #         - Id: RemoveOldOsmFiles
+    #           Prefix: osm
+    #           Status: Enabled
+    #           ExpirationInDays: 65
+    #         - Id: RemoveOldNvdbZipFiles
+    #           Prefix: nvdb-zip
+    #           Status: Enabled
+    #           ExpirationInDays: 65
+
+    # DataBucketAccessManagedPolicy:
+    #   Type: AWS::IAM::ManagedPolicy
+    #   Properties:
+    #     ManagedPolicyName: NvdbDataBucketAccessPolicy
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Action:
+    #             - s3:GetObject
+    #             - s3:PutObject
+    #             - s3:ListBucket
+    #             - s3:PutObjectAcl
+    #             - s3:DeleteObject
+    #           Resource:
+    #             - arn:aws:s3:::${self:custom.dataBucketName}/*
+    #             - arn:aws:s3:::${self:custom.dataBucketName}
+
+    Nvdb2OsmPipelineLaunchEc2InstancesPolicy:
+      Type: AWS::IAM::ManagedPolicy
+      Properties:
+        ManagedPolicyName: Nvdb2OsmPipelineLaunchEc2InstancesPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ec2:*
+                - iam:PassRole
+              Resource:
+                - '*'
+
+    # InvokeLambdaPolicy:
+    #   Type: AWS::IAM::ManagedPolicy
+    #   Properties:
+    #     ManagedPolicyName: InvokeLambdaPolicy
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Action:
+    #             - lambda:InvokeFunction
+    #           Resource:
+    #             - '*'
+
+    # Ec2RoleForDataConversion:
+    #   Type: AWS::IAM::Role
+    #   Properties:
+    #     RoleName: Ec2RoleForDataConversion
+    #     Description: Role to let the EC2 instance that runs nvdb2osm.py access the data bucket
+    #     ManagedPolicyArns:
+    #       - !Ref DataBucketAccessManagedPolicy
+    #       - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+    #     AssumeRolePolicyDocument:
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             Service:
+    #               - ec2.amazonaws.com
+    #           Action:
+    #             - 'sts:AssumeRole'
+
+    # Ec2InstanceProfileForDataConversion:
+    #   Type: AWS::IAM::InstanceProfile
+    #   Properties:
+    #     InstanceProfileName: Ec2InstanceProfileForDataConversion
+    #     Roles:
+    #       - !Ref Ec2RoleForDataConversion
