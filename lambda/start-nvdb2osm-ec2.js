@@ -27,6 +27,7 @@ exports.handler = async function (event, context) {
 
     // run the pipeline
     'mkdir -p workdir/download',
+    'export UPLOAD_BUCKET_NAME=' + process.env.UPLOAD_BUCKET_NAME,
     'node scripts/download-nvdb.js ./workdir/download',
     'node scripts/run-pipeline.js',
 
@@ -41,6 +42,9 @@ exports.handler = async function (event, context) {
     MaxCount: 1,
     MinCount: 1,
     InstanceInitiatedShutdownBehavior: 'terminate',
+    IamInstanceProfile: {
+      Arn: process.env.INSTANCE_PROFILE_ARN,
+    },
     Monitoring: { Enabled: true },
     UserData: Buffer.from(userData.join('\n')).toString('base64'),
     BlockDeviceMappings: [

@@ -14,7 +14,6 @@ async function downloadFiles(downloadFolder) {
       lastkajenFolder.lanskod,
       downloadFolder
     )
-    break
   }
 }
 

@@ -2,17 +2,17 @@ const sh = require('shelljs')
 const path = require('path')
 
 sh.cd('workdir')
-const WORKDIR = String(sh.pwd())
 echoHeadline('pipeline starting')
+
+const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
+if (!UPLOAD_BUCKET_NAME) {
+  console.log('ERROR. Env variable UPLOAD_BUCKET_NAME not found')
+  return
+}
 
 // install atorger's code
 sh.exec('git clone --depth 1 https://github.com/atorger/nvdb2osm.git')
 sh.exec('pip install -r nvdb2osm/requirements.txt')
-
-// clone the data repo
-sh.exec(
-  'git clone --depth 1 git@github.com:matthiasfeist/nvdb2osm-pipeline-data.git'
-)
 
 // run the splitting of the "länsfiler"
 sh.cd('nvdb2osm')
@@ -32,28 +32,20 @@ for (const nvdbFile of downloadedFiles) {
   const kommunFiles = Array.from(sh.ls('output/*.zip'))
   for (const kommunFile of kommunFiles) {
     const kommunName = path.parse(kommunFile)?.name
+    echoHeadline('processing ' + kommunFile)
 
     sh.exec(
       `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_railway --skip_self_test 2>&1`
-    ).to(`output/split_${kommunName}.log`)
-  }
-  break
-}
+    ).to(`output/${kommunName}.log`)
 
-// 'mkdir data',
-// `aws s3 sync s3://${BUCKET_NAME}/nvdb-zip/ ./data/`,
-// 'for f in ./data/*.zip',
-// 'do',
-// '  echo ${f%.zip}',
-// '  osmfile=${f%.zip}.osm',
-// '  logfile=${f%.zip}.log',
-// '  python nvdb2osm.py $f $osmfile -v --skip_railway 2>&1 | tee $logfile',
-// `  aws s3 cp $logfile s3://${BUCKET_NAME}/${OSM_FOLDER}/ --acl public-read`,
-// `  aws s3 cp $osmfile s3://${BUCKET_NAME}/${OSM_FOLDER}/ --acl public-read`,
-// '  rm $f',
-// 'done',
-// // s3 sync in the end because it sometimes happens that files are not uploaded
-// `aws s3 sync ./data/ s3://${BUCKET_NAME}/${OSM_FOLDER}/ --exclude="*" --include="*.log" --include="*.osm" --acl public-read`,
+    sh.exec(
+      `aws s3 cp output/${kommunName}.log s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
+    )
+    sh.exec(
+      `aws s3 cp output/${kommunName}.osm s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
+    )
+  }
+}
 
 function echoHeadline(str) {
   console.log('')
