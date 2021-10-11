@@ -32,7 +32,7 @@ exports.handler = async function (event, context) {
     'node scripts/run-pipeline.js',
 
     // done
-    //'shutdown -h',
+    'shutdown -h',
   ]
 
   const params = {
