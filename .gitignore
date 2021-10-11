@@ -1,6 +1,8 @@
 node_modules
 .serverless
 .DS_Store
+workdir/*
+python-env
 
 # Logs
 logs

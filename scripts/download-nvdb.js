@@ -14,6 +14,7 @@ async function downloadFiles(downloadFolder) {
       lastkajenFolder.lanskod,
       downloadFolder
     )
+    break
   }
 }
 
@@ -113,3 +114,4 @@ if (!downloadFolder) {
   throw new Error('No download folder param found')
 }
 downloadFiles(downloadFolder)
+console.log('download done')
