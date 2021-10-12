@@ -35,22 +35,24 @@ for (const nvdbFile of downloadedFiles) {
     echoHeadline('processing ' + kommunFile)
 
     sh.exec(
-      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_railway --skip_self_test 2>&1`
+      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_railway 2>&1`
     ).to(`output/${kommunName}.log`)
-
-    sh.exec(
-      `aws s3 cp output/${kommunName}.log s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
-    )
-    sh.exec(
-      `aws s3 cp output/${kommunName}.osm s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
-    )
   }
+
+  // Upload files to S3
+  sh.exec(
+    `aws s3 cp output/*.log s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
+  )
+  sh.exec(
+    `aws s3 cp output/*.osm s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
+  )
 }
 
 function echoHeadline(str) {
   console.log('')
-  console.log('*'.repeat(str.length))
-  console.log(str)
-  console.log('*'.repeat(str.length))
+  console.log('')
+  console.log('*'.repeat(str.length + 4))
+  console.log('  ' + str + '  ')
+  console.log('*'.repeat(str.length + 4))
   console.log('')
 }
