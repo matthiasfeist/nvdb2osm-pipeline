@@ -19,6 +19,11 @@ sh.cd('nvdb2osm')
 
 const downloadedFiles = Array.from(sh.ls('../download/*.zip'))
 for (const nvdbFile of downloadedFiles) {
+  if (nvdbFile.includes('rail')) {
+    // make sure we're not processing the railway file
+    continue
+  }
+
   echoHeadline('processing ' + nvdbFile)
   const lanskod = path.parse(nvdbFile)?.name
 
@@ -34,17 +39,20 @@ for (const nvdbFile of downloadedFiles) {
     const kommunName = path.parse(kommunFile)?.name
     echoHeadline('processing ' + kommunFile)
 
+    let splitCmdParams = ''
+    if (sh.test('-f', `data/${kommunName}-split.geojson`)) {
+      splitCmdParams = `--split_file="data/${kommunName}-split.geojson" --split_dir="output/${kommunName}-split"`
+      sh.mkdir(`output/${kommunName}-split`)
+    }
+
     sh.exec(
-      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_railway 2>&1`
+      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_self_test --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
     ).to(`output/${kommunName}.log`)
   }
 
   // Upload files to S3
   sh.exec(
-    `aws s3 cp output/*.log s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
-  )
-  sh.exec(
-    `aws s3 cp output/*.osm s3://${UPLOAD_BUCKET_NAME}/osm/ --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --recursive --exclude="*" --include="*.log" --include="*.osm" --acl public-read`
   )
 }
 
