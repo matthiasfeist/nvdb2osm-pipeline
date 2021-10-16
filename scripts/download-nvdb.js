@@ -10,8 +10,7 @@ async function downloadFiles(downloadFolder) {
   for (const lastkajenFolder of lastkajenFolderArray) {
     await downloadNVDBFile(
       lastkajenFolder.folderId,
-      lastkajenFolder.name,
-      lastkajenFolder.lanskod,
+      lastkajenFolder.targetFilename,
       downloadFolder
     )
   }
@@ -30,6 +29,20 @@ async function getFolderIDsFromLastkajen() {
   const responseData = await response.json()
   const result = []
 
+  // find file "Järnvägsnät med grundegenskaper"
+  responseData.forEach((responseEntry) => {
+    if (
+      !responseEntry.sourceFolder?.includes('Järnvägsnät med grundegenskaper')
+    ) {
+      return
+    }
+    result.push({
+      targetFilename: 'rail',
+      folderId: responseEntry.id,
+    })
+  })
+
+  // find the "Länsfiler"
   responseData.forEach((responseEntry) => {
     if (!responseEntry.sourceFolder?.includes('Länsfiler NVDB-data')) {
       return
@@ -40,17 +53,17 @@ async function getFolderIDsFromLastkajen() {
         responseEntry.name?.toLocaleLowerCase()
       ) {
         result.push({
-          name: lanskodListItem.name,
-          lanskod: lanskodListItem.lanskod,
+          targetFilename: lanskodListItem.lanskod,
           folderId: responseEntry.id,
         })
       }
     })
   })
+
   return result
 }
 
-async function downloadNVDBFile(folderId, name, lanskod, downloadFolder) {
+async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
   const folderDetailsResponse = await fetch(
     `https://lastkajen.trafikverket.se/api/DataPackage/GetDataPackageFiles/${folderId}`
   )
@@ -65,12 +78,17 @@ async function downloadNVDBFile(folderId, name, lanskod, downloadFolder) {
   // find the link to request the download token:
   let filename = null
   folderDetailsJson.forEach((fileDetails) => {
-    if (fileDetails.name?.includes('Shape.zip')) {
+    if (
+      fileDetails.name?.includes('Shape.zip') ||
+      fileDetails.name?.includes('Järnvägsnät_grundegenskaper.zip')
+    ) {
       filename = fileDetails.name
     }
   })
   if (!filename) {
-    throw new Error(`can't find filename for ${name}`)
+    throw new Error(
+      `can't find filename for ${targetFilename}. FolderId: ${folderId}`
+    )
   }
 
   // retrieve the download token for this file:
@@ -92,8 +110,8 @@ async function downloadNVDBFile(folderId, name, lanskod, downloadFolder) {
   }
 
   // download the file
-  const targetFilename = path.join(downloadFolder, lanskod + '.zip')
-  console.log('downloading', filename, ' => ', targetFilename)
+  const fullFilename = path.join(downloadFolder, targetFilename + '.zip')
+  console.log('downloading', filename, ' => ', fullFilename)
 
   const streamPipeline = util.promisify(stream.pipeline)
   const downloadResponse = await fetch(
@@ -104,7 +122,7 @@ async function downloadNVDBFile(folderId, name, lanskod, downloadFolder) {
   }
   await streamPipeline(
     downloadResponse.body,
-    fs.createWriteStream(targetFilename)
+    fs.createWriteStream(fullFilename)
   )
 }
 
