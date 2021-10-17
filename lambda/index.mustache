@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    {{#data}}
+
+    <h3>{{name}}</h3>
+    {{#osm}}
+        <a href="{{{osm.downloadLink}}}">Download .osm <small>({{osm.sizeMb}} MB)</small></a> (generated {{osm.generatedDaysAgo}})
+    {{/osm}}
+    {{^osm}}
+        No OSM File generated. Check logs: <a href="{{{log.downloadLink}}}">Download .log <small>({{log.sizeMb}} MB)</small></a> (generated {{log.generatedDaysAgo}})
+    {{/osm}}
+    {{#split}}
+       <br />
+       <a href="{{{split.downloadLink}}}">Download this area splitted in smaller files <small>({{split.sizeMb}} MB)</small></a> (generated {{split.generatedDaysAgo}})
+    {{/split}}
+
+    {{/data}}
+</body>
+</html>

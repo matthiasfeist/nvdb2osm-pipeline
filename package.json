@@ -17,6 +17,8 @@
     "semi": false
   },
   "dependencies": {
+    "date-fns": "^2.25.0",
+    "mustache": "^4.2.0",
     "node-fetch": "^2.6.1",
     "shelljs": "^0.8.4"
   }

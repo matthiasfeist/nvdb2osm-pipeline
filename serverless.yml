@@ -27,6 +27,14 @@ functions:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
 
+  generateIndexHtml:
+    handler: lambda/generate-index-html.handler
+    logRetentionInDays: 7
+    events:
+      - schedule: rate(6 hours)
+    environment:
+      UPLOAD_BUCKET_NAME: !Ref UploadBucket
+
 plugins:
   - serverless-plugin-log-retention
 
@@ -43,6 +51,12 @@ resources:
         WebsiteConfiguration:
           ErrorDocument: 404.html
           IndexDocument: index.html
+        LifecycleConfiguration:
+          Rules:
+            - Id: RemoveOldOsmFiles
+              Prefix: osm
+              Status: Enabled
+              ExpirationInDays: 40
 
     DataBucketAccessManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
