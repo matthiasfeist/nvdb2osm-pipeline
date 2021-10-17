@@ -48,11 +48,17 @@ for (const nvdbFile of downloadedFiles) {
     sh.exec(
       `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --skip_self_test --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
     ).to(`output/${kommunName}.log`)
+
+    if (splitCmdParams !== '') {
+      sh.exec(
+        `zip -rmj "output/${kommunName}-split.zip" "output/${kommunName}-split/"`
+      )
+    }
   }
 
   // Upload files to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --recursive --exclude="*" --include="*.log" --include="*.osm" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --recursive --exclude="*" --include="*.log" --include="*.osm" --include="*-split.zip" --acl public-read`
   )
 }
 
