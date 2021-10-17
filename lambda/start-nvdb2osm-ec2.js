@@ -5,6 +5,12 @@ exports.handler = async function (event, context) {
   const userData = [
     '#!/bin/bash',
     'shutdown -h +1440', // 1 day. just to make sure we're not running an expensive server forever in case something goes wrong
+
+    // make everything work with Swedish characters in the filename
+    'export LANG=en_US.utf-8',
+    'export LC_ALL=en_US.utf-8',
+
+    // update packages and install git
     'yum update -y',
     'yum install git -y',
 
