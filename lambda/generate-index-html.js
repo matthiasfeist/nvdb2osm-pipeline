@@ -53,7 +53,7 @@ async function getData(UPLOAD_BUCKET_NAME) {
         { addSuffix: true }
       ),
       downloadLink: `https://${UPLOAD_BUCKET_NAME}.s3.amazonaws.com/${s3File.Key}`,
-      sizeMb: Math.round(s3File.Size / 1024 / 1024),
+      sizeMb: Math.ceil(s3File.Size / 1024 / 1024),
     }
 
     kommunFiles[name] = kommunFile
