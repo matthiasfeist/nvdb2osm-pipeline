@@ -20,6 +20,7 @@ exports.handler = async function (event, context) {
       Body: output,
       ACL: 'public-read',
       ContentType: 'text/html',
+      CacheControl: 'No-Cache',
     })
     .promise()
 }
