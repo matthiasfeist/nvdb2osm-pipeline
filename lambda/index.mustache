@@ -1,26 +1,67 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title></title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.1/font/bootstrap-icons.css">
+    <title>NVDB2OSM – OSM files for download</title>
+  </head>
+  <body>
+    <div class="container">
+        <h1 class="display-2">nvdb2osm – OSM files for download</h1>
+        <h2>About the nvdb2osm pipeline project:</h2>
+        <p>
+            This project provides helper and utility data for the 
+            <a href="https://wiki.openstreetmap.org/wiki/Import/Catalogue/Sweden_highway_import">Sweden Highway Import</a>
+            initative. Please visit the link to read more about the data sources used.<br />
+            This project maintains an automated pipeline which downloads the latest
+            data from <a href="https://www.nvdb.se/sv">Trafikverket's NVDB</a> and converts 
+            it via the <a href="https://github.com/atorger/nvdb2osm">nvdb2osm script</a> 
+            into usable OSM files. These files can then be used by members of the community for the
+            import without having to download data from NVDB and running the python
+            script.
+        </p>
 
-<body>
-    {{#data}}
+        <h3>Important before you start working on the import!</h3>
+        <p>
+            Please make sure that you have read the instructions on the 
+            <a href="https://wiki.openstreetmap.org/wiki/Import/Catalogue/Sweden_highway_import">Sweden Highway Import Wiki page</a>.
+            It's also important that you write down your progress (when you start to work on something and when you are finished) 
+            on the <a href="https://wiki.openstreetmap.org/wiki/Import/Catalogue/Sweden_highway_import/Progress">Progress tracker Wiki page</a>.
+        </p>
 
-    <h3>{{name}}</h3>
-    {{#osm}}
-        <a href="{{{osm.downloadLink}}}">Download .osm <small>({{osm.sizeMb}} MB)</small></a> (generated {{osm.generatedDaysAgo}})
-    {{/osm}}
-    {{^osm}}
-        No OSM File generated. Check logs: <a href="{{{log.downloadLink}}}">Download .log <small>({{log.sizeMb}} MB)</small></a> (generated {{log.generatedDaysAgo}})
-    {{/osm}}
-    {{#split}}
-       <br />
-       <a href="{{{split.downloadLink}}}">Download this area splitted in smaller files <small>({{split.sizeMb}} MB)</small></a> (generated {{split.generatedDaysAgo}})
-    {{/split}}
+        <h2>Download the files:</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
 
-    {{/data}}
-</body>
+            {{#data}}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{name}}</h5>
+
+                        {{#osm}}
+                            <h6 class="card-subtitle mb-2 text-muted">generated {{osm.generatedDaysAgo}}</h6>
+                           
+                            <div class="btn-group">
+                            <a href="{{{osm.downloadLink}}}" class="card-link btn btn-primary"><i class="bi bi-map"></i> osm <small>({{osm.sizeMb}} MB)</small></a>
+                            {{#split}}
+                            <a href="{{{split.downloadLink}}}" class="card-link btn btn-outline-primary"><i class="bi bi-file-earmark-zip"></i> splitted <small>({{split.sizeMb}} MB)</small></a>
+                            {{/split}}
+                            </div>
+                        {{/osm}}
+
+                        {{^osm}}
+                            <h6 class="card-subtitle mb-2 text-muted">Log file generated {{log.generatedDaysAgo}}</h6>
+                            <p class="card-text"><span class="badge bg-danger">Error</span> The nvdb2osm script wasn't able to generate an osm file from the NVDB data. You can report this issue <a href="https://github.com/atorger/nvdb2osm/issues">here</a>.</p>
+                            <a href="{{{log.downloadLink}}}" class="card-link btn btn-danger"><i class="bi bi-bug"></i> Download log <small>({{log.sizeMb}} MB)</small></a>
+                        {{/osm}}
+
+                    </div>                    
+                </div>
+            </div>
+            {{/data}}
+        </div>
+    </div>
+  </body>
 </html>
