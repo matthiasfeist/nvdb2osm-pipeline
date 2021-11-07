@@ -22,7 +22,7 @@ functions:
     memorySize: 128
     events:
       # run each 21st of a month (as it seems that most files are being updated on the 20st of each month)
-      - schedule: cron(0 8 21 * ? *)
+      - schedule: cron(0 5 1,15 * ? *)
     environment:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
@@ -31,7 +31,7 @@ functions:
     handler: lambda/generate-index-html.handler
     logRetentionInDays: 7
     events:
-      - schedule: rate(6 hours)
+      - schedule: rate(4 hours)
     environment:
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
 

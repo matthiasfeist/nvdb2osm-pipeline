@@ -4,11 +4,13 @@ const path = require('path')
 const fs = require('fs')
 const Mustache = require('mustache')
 const dateFns = require('date-fns')
+const fetch = require('node-fetch')
 
 exports.handler = async function (event, context) {
   const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
 
-  const data = await getData(UPLOAD_BUCKET_NAME)
+  let data = await getData(UPLOAD_BUCKET_NAME)
+  data = await getStatusFromOSMWikiPage(data)
   const template = fs.readFileSync(path.join(__dirname, 'index.mustache'), {
     encoding: 'utf-8',
   })
@@ -54,6 +56,7 @@ async function getData(UPLOAD_BUCKET_NAME) {
       ),
       downloadLink: `https://${UPLOAD_BUCKET_NAME}.s3.amazonaws.com/${s3File.Key}`,
       sizeMb: Math.ceil(s3File.Size / 1024 / 1024),
+      importStatus: null,
     }
 
     kommunFiles[name] = kommunFile
@@ -70,84 +73,30 @@ async function getData(UPLOAD_BUCKET_NAME) {
   return result
 }
 
-/*
-exports.handler = async function (event, context) {
-  const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
+async function getStatusFromOSMWikiPage(data) {
+  const apiUrl =
+    'https://wiki.openstreetmap.org/w/api.php?action=parse&prop=wikitext&page=Import/Catalogue/Sweden%20highway%20import/Progress&formatversion=2&format=json'
+  const response = await fetch(apiUrl)
+  if (!response.ok) {
+    return data
+  }
+  const responseData = await response.json()
+  const [ongoingWork, finishedWork] = responseData.parse?.wikitext?.split(
+    '== Färdigställda kommuner =='
+  )
 
-  const osmAndLogsListingResponse = await s3
-    .listObjectsV2({ Bucket: UPLOAD_BUCKET_NAME, Prefix: 'osm/' })
-    .promise()
-  const osmAndLogsListing = osmAndLogsListingResponse.Contents
+  if (!ongoingWork || !finishedWork) {
+    return data
+  }
 
-  const resultList = trafikverketData.map((kommunData) => {
-    const sourceDownloadedDate = getZipDownloadedDate(
-      kommunData.slug,
-      nvdbZipListing
-    )
-    return {
-      id: kommunData.slug,
-      displayName: kommunData.name,
-      sourceData: sourceDownloadedDate
-        ? {
-            source: 'Trafikverket Lastkajen',
-            downloadedDate: sourceDownloadedDate,
-          }
-        : null,
-      generatedData: {
-        log: getGeneratedData(
-          kommunData.slug,
-          'log',
-          osmAndLogsListing,
-          UPLOAD_BUCKET_NAME
-        ),
-        osm: getGeneratedData(
-          kommunData.slug,
-          'osm',
-          osmAndLogsListing,
-          UPLOAD_BUCKET_NAME
-        ),
-      },
+  for (let index = 0; index < data.length; index++) {
+    const kommunName = data[index].name
+    if (ongoingWork.includes(kommunName)) {
+      data[index].importStatus = 'ongoing import'
+    } else if (finishedWork.includes(kommunName)) {
+      data[index].importStatus = 'import finished'
     }
-  })
-
-  const result = {
-    meta: { generatedDate: new Date().toISOString() },
-    data: resultList,
   }
 
-  await s3
-    .putObject({
-      Bucket: UPLOAD_BUCKET_NAME,
-      Key: 'data-index.json',
-      Body: JSON.stringify(result),
-      ACL: 'public-read',
-      ContentType: 'application/json',
-    })
-    .promise()
+  return data
 }
-
-function getZipDownloadedDate(slug, nvdbZipListing) {
-  const listingItem = nvdbZipListing.find(
-    (item) => item.Key === 'nvdb-zip/' + slug + '.zip'
-  )
-  if (!listingItem) {
-    return null
-  }
-  return new Date(listingItem.LastModified).toISOString()
-}
-
-function getGeneratedData(slug, ext, osmAndLogsListing, bucketname) {
-  const item = osmAndLogsListing.find(
-    (item) => item.Key === 'osm/' + slug + '.' + ext
-  )
-  if (!item) {
-    return null
-  }
-
-  return {
-    generatedDate: new Date(item.LastModified).toISOString(),
-    downloadLink: `https://${bucketname}.s3.amazonaws.com/osm/${slug}.${ext}`,
-    size_bytes: item.Size,
-  }
-}
-*/
