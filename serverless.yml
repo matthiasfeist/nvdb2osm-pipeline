@@ -21,8 +21,7 @@ functions:
     timeout: 120 # 2 minutes
     memorySize: 128
     events:
-      # run each 21st of a month (as it seems that most files are being updated on the 20st of each month)
-      - schedule: cron(0 5 1,15 * ? *)
+      - schedule: cron(0 5 1,15 * ? *) # needs to be in sync with the S3 remove rule below
     environment:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
@@ -53,10 +52,10 @@ resources:
           IndexDocument: index.html
         LifecycleConfiguration:
           Rules:
-            - Id: RemoveOldOsmFiles
+            - Id: RemoveOldFiles
               Prefix: osm
               Status: Enabled
-              ExpirationInDays: 40
+              ExpirationInDays: 20 #needs to be synched with the EC2 lambda above
 
     DataBucketAccessManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
