@@ -46,7 +46,7 @@ for (const nvdbFile of downloadedFiles) {
     }
 
     sh.exec(
-      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
+      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
     ).to(`output/${kommunName}.log`)
 
     if (splitCmdParams !== '') {
