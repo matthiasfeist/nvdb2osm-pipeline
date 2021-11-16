@@ -31,6 +31,23 @@
             on the <a href="https://wiki.openstreetmap.org/wiki/Import/Catalogue/Sweden_highway_import/Progress">Progress tracker Wiki page</a>.
         </p>
 
+        <h2>Statistics:</h2>
+        {{#stats}}   
+        <div>
+            <strong>Number of municipalities:</strong> Total: {{numOsmItems}} | Import ongoing: {{numOngoing}} | Finished import: {{numFinished}}
+            <div class="progress mb-2">
+                <div class="progress-bar bg-success" style="width: {{finishedPercentage}}%">{{numFinished}}</div>
+                <div class="progress-bar bg-info" style="width: {{ongoingPercentage}}%">{{numOngoing}}</div>
+            </div>
+
+            <strong>Size of municipality files:</strong> Total: {{totalSize}} MB | Import ongoing: {{ongoingSize}} MB | Finished import: {{finishedSize}} MB
+            <div class="progress mb-4">
+                <div class="progress-bar bg-success" style="width: {{finishedSizePercentage}}%">{{finishedSize}} MB</div>
+                <div class="progress-bar bg-info" style="width: {{ongoingSizePercentage}}%">{{ongoingSize}} MB</div>
+            </div>
+        </div>
+        {{/stats}}   
+
         <h2>Download the files:</h2>
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
 

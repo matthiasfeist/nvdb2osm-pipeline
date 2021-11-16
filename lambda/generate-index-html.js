@@ -11,10 +11,13 @@ exports.handler = async function (event, context) {
 
   let data = await getData(UPLOAD_BUCKET_NAME)
   data = await getStatusFromOSMWikiPage(data)
+
+  const stats = calculateStats(data)
+
   const template = fs.readFileSync(path.join(__dirname, 'index.mustache'), {
     encoding: 'utf-8',
   })
-  const output = Mustache.render(template, { data })
+  const output = Mustache.render(template, { data, stats })
   await s3
     .putObject({
       Bucket: UPLOAD_BUCKET_NAME,
@@ -56,7 +59,6 @@ async function getData(UPLOAD_BUCKET_NAME) {
       ),
       downloadLink: `https://${UPLOAD_BUCKET_NAME}.s3.amazonaws.com/${s3File.Key}`,
       sizeMb: Math.ceil(s3File.Size / 1024 / 1024),
-      importStatus: null,
     }
 
     kommunFiles[name] = kommunFile
@@ -90,6 +92,7 @@ async function getStatusFromOSMWikiPage(data) {
   }
 
   for (let index = 0; index < data.length; index++) {
+    data[index].importStatus = null
     const kommunName = data[index].name
     if (ongoingWork.includes(kommunName)) {
       data[index].importStatus = 'ongoing import'
@@ -99,4 +102,49 @@ async function getStatusFromOSMWikiPage(data) {
   }
 
   return data
+}
+
+function calculateStats(data) {
+  const osmItems = data.filter((item) => !!item.osm)
+  const ongoingItems = osmItems.filter(
+    (item) => item.importStatus === 'ongoing import'
+  )
+  const finishedItems = osmItems.filter(
+    (item) => item.importStatus === 'import finished'
+  )
+
+  const sizeReducer = (prev, item) => {
+    return prev + item.osm.sizeMb
+  }
+
+  const totalSize = osmItems.reduce(sizeReducer, 0)
+  const ongoingSize = ongoingItems.reduce(sizeReducer, 0)
+  const finishedSize = finishedItems.reduce(sizeReducer, 0)
+
+  const ongoingPercentage = Math.round(
+    (ongoingItems.length / osmItems.length) * 100
+  )
+  const finishedPercentage = Math.round(
+    (finishedItems.length / osmItems.length) * 100
+  )
+
+  const ongoingSizePercentage = Math.round((ongoingSize / totalSize) * 100)
+  const finishedSizePercentage = Math.round((finishedSize / totalSize) * 100)
+
+  return {
+    numOsmItems: osmItems.length,
+    numErrorItems: data.length - osmItems.length,
+    numOngoing: ongoingItems.length,
+    numFinished: finishedItems.length,
+
+    totalSize: totalSize,
+    ongoingSize: ongoingSize,
+    finishedSize: finishedSize,
+
+    ongoingPercentage: ongoingPercentage,
+    finishedPercentage: finishedPercentage,
+
+    ongoingSizePercentage: ongoingSizePercentage,
+    finishedSizePercentage: finishedSizePercentage,
+  }
 }
