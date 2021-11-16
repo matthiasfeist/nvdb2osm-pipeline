@@ -53,7 +53,6 @@ resources:
         LifecycleConfiguration:
           Rules:
             - Id: RemoveOldFiles
-              Prefix: osm
               Status: Enabled
               ExpirationInDays: 20 #needs to be synched with the EC2 lambda above
 
