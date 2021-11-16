@@ -33,6 +33,11 @@ for (const nvdbFile of downloadedFiles) {
     `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ 2>&1`
   ).to(`output/split_${lanskod}.log`)
 
+  // Upload generated shape files and the logs to S3
+  sh.exec(
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --recursive --exclude="*" --include="*.log" --include="*.zip" --acl public-read`
+  )
+
   // now run the conversion for every splitted file
   const kommunFiles = Array.from(sh.ls('output/*.zip'))
   for (const kommunFile of kommunFiles) {
