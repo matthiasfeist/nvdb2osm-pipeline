@@ -39,6 +39,11 @@ for (const nvdbFile of downloadedFiles) {
     const kommunName = path.parse(kommunFile)?.name
     echoHeadline('processing ' + kommunFile)
 
+    // upload the generated shape file to the S3 bucket
+    sh.exec(
+      `aws s3 cp "${kommunFile}" "s3://${UPLOAD_BUCKET_NAME}/osm/${kommunName}-shape.zip" --acl public-read`
+    )
+
     let splitCmdParams = ''
     if (sh.test('-f', `data/${kommunName}-split.geojson`)) {
       splitCmdParams = `--split_file="data/${kommunName}-split.geojson" --split_dir="output/${kommunName}-split"`
