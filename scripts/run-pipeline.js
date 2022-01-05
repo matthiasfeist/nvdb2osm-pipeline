@@ -48,6 +48,7 @@ for (const nvdbFile of downloadedFiles) {
     if (sh.test('-f', `data/${kommunName}-split.geojson`)) {
       splitCmdParams = `--split_file="data/${kommunName}-split.geojson" --split_dir="output/${kommunName}-split"`
       sh.mkdir(`output/${kommunName}-split`)
+      console.log('Split file found. Adding parameters:', splitCmdParams)
     }
 
     sh.exec(
