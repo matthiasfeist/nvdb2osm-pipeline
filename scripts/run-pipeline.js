@@ -35,7 +35,7 @@ for (const nvdbFile of downloadedFiles) {
 
   // Upload generated shape files and the logs to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --recursive --exclude="*" --include="*.log" --include="*.zip" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.log" --include="*.zip" --acl public-read`
   )
 
   // now run the conversion for every splitted file
@@ -48,23 +48,24 @@ for (const nvdbFile of downloadedFiles) {
     if (sh.test('-f', `data/${kommunName}-split.geojson`)) {
       splitCmdParams = `--split_file="data/${kommunName}-split.geojson" --split_dir="output/${kommunName}-split"`
       sh.mkdir(`output/${kommunName}-split`)
-      console.log('Split file found. Adding parameters:', splitCmdParams)
+    } else {
+      console.log('Split file not found. ', `data/${kommunName}-split.geojson`)
     }
 
-    sh.exec(
-      `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
-    ).to(`output/${kommunName}.log`)
+    const nvdb2osmCmd = `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
+    console.log('Running nvdb2osm script: ', nvdb2osmCmd)
+    sh.exec(nvdb2osmCmd).to(`output/${kommunName}.log`)
 
     if (splitCmdParams !== '') {
-      sh.exec(
-        `zip -rmj "output/${kommunName}-split.zip" "output/${kommunName}-split/"`
-      )
+      const zipCmd = `zip -rmj "output/${kommunName}-split.zip" "output/${kommunName}-split/"`
+      console.log('Running zip : ', zipCmd)
+      sh.exec(zipCmd)
     }
   }
 
   // Upload files to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --recursive --exclude="*" --include="*.log" --include="*.osm" --include="*-split.zip" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --no-progress --recursive --exclude="*" --include="*.log" --include="*.osm" --include="*-split.zip" --acl public-read`
   )
 }
 

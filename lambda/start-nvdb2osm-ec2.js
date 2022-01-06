@@ -37,10 +37,10 @@ exports.handler = async function (event, context) {
     'export UPLOAD_BUCKET_NAME=' + UPLOAD_BUCKET_NAME,
 
     'node scripts/download-nvdb.js ./workdir/download | tee download.log',
-    `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/ --acl public-read`,
+    `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/ --no-progress --acl public-read`,
 
     'node scripts/run-pipeline.js | tee pipeline.log',
-    `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/ --acl public-read`,
+    `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/ --no-progress --acl public-read`,
 
     // done
     'shutdown -h',
