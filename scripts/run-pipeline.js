@@ -33,9 +33,13 @@ for (const nvdbFile of downloadedFiles) {
     `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ 2>&1`
   ).to(`output/split_${lanskod}.log`)
 
-  // Upload generated shape files and the logs to S3
+  // Upload generated shape files to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.log" --include="*.zip" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.zip" --acl public-read`
+  )
+  // Upload split logs to S3
+  sh.exec(
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.log" --acl public-read --content-type text/plain`
   )
 
   // now run the conversion for every splitted file
@@ -65,7 +69,11 @@ for (const nvdbFile of downloadedFiles) {
 
   // Upload files to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --no-progress --recursive --exclude="*" --include="*.log" --include="*.osm" --include="*-split.zip" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --no-progress --recursive --exclude="*" --include="*.osm" --include="*-split.zip" --acl public-read`
+  )
+  // upload log files
+  sh.exec(
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --no-progress --recursive --exclude="*" --include="*.log" --acl public-read --content-type text/plain`
   )
 }
 
