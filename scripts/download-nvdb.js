@@ -60,7 +60,9 @@ async function getFolderIDsFromLastkajen() {
     })
   })
 
-  return result
+  return result.sort((a, b) =>
+    a.targetFilename.localeCompare(b.targetFilename, 'en-u-kn-true')
+  )
 }
 
 async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
