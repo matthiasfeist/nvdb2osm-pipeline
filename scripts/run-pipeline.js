@@ -81,6 +81,7 @@ function echoHeadline(str) {
   console.log('')
   console.log('')
   console.log('*'.repeat(str.length + 4))
+  console.log('  ' + new Date().toString())
   console.log('  ' + str + '  ')
   console.log('*'.repeat(str.length + 4))
   console.log('')

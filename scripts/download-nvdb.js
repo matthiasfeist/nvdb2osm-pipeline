@@ -132,5 +132,6 @@ const downloadFolder = path.normalize(process.argv[2])
 if (!downloadFolder) {
   throw new Error('No download folder param found')
 }
+console.log(new Date().toString())
 downloadFiles(downloadFolder)
 console.log('download done')
