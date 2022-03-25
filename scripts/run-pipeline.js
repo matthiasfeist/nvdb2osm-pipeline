@@ -56,7 +56,14 @@ for (const nvdbFile of downloadedFiles) {
       console.log('Split file not found. ', `data/${kommunName}-split.geojson`)
     }
 
-    const nvdb2osmCmd = `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" --railway_file=../download/rail.zip ${splitCmdParams} 2>&1`
+    let railFileCmdParams = ''
+    if (sh.test('-f', '../download/rail.zip')) {
+      railFileCmdParams = '--railway_file=../download/rail.zip'
+    } else {
+      console.log('Railway file not found. Skipping.')
+    }
+
+    const nvdb2osmCmd = `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" ${railFileCmdParams} ${splitCmdParams} 2>&1`
     console.log('Running nvdb2osm script: ', nvdb2osmCmd)
     sh.exec(nvdb2osmCmd).to(`output/${kommunName}.log`)
 
