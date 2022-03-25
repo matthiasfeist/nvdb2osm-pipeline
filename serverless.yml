@@ -54,7 +54,7 @@ resources:
           Rules:
             - Id: RemoveOldFiles
               Status: Enabled
-              ExpirationInDays: 20 #needs to be synched with the EC2 lambda above
+              ExpirationInDays: 90 #needs to be synched with the EC2 lambda above
 
     DataBucketAccessManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
