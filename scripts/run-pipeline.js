@@ -7,7 +7,7 @@ echoHeadline('pipeline starting')
 const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
 if (!UPLOAD_BUCKET_NAME) {
   console.log('ERROR. Env variable UPLOAD_BUCKET_NAME not found')
-  return
+  process.exit(1)
 }
 
 // install atorger's code
