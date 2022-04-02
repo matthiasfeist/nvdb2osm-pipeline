@@ -119,7 +119,14 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
 
   // download the file
   const fullFilename = path.join(downloadFolder, targetFilename + '.zip')
-  console.log('downloading', filename, ' => ', fullFilename)
+  console.log(
+    'downloading',
+    filename,
+    'folderID',
+    folderId,
+    ' => ',
+    fullFilename
+  )
 
   const streamPipeline = util.promisify(stream.pipeline)
   const downloadResponse = await fetch(
@@ -140,4 +147,3 @@ if (!downloadFolder) {
 }
 console.log(new Date().toString())
 downloadFiles(downloadFolder)
-console.log('download done')
