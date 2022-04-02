@@ -1,3 +1,4 @@
+'use strict'
 const fetch = require('node-fetch')
 const fs = require('fs')
 const stream = require('stream')
@@ -66,9 +67,13 @@ async function getFolderIDsFromLastkajen() {
     })
   })
 
-  return result.sort((a, b) =>
-    a.targetFilename.localeCompare(b.targetFilename, 'en-u-kn-true')
-  )
+  // return result.sort((a, b) =>
+  //   a.targetFilename.localeCompare(b.targetFilename, 'en-u-kn-true')
+  // )
+
+  // shuffle the array and don't sort it. that way if we get blocked or a
+  // timeout from Lastkajen at least we don't always download the same ones first.
+  return result.sort(() => Math.random() - 0.5)
 }
 
 async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
