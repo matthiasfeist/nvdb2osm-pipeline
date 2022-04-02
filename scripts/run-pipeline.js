@@ -56,7 +56,7 @@ for (const nvdbFile of downloadedFiles) {
       console.log('Split file not found. ', `data/${kommunName}-split.geojson`)
     }
 
-    let railFileCmdParams = ''
+    let railFileCmdParams = '--skip_railway'
     if (sh.test('-f', '../download/rail.zip')) {
       railFileCmdParams = '--railway_file=../download/rail.zip'
     } else {
