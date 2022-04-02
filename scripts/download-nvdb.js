@@ -7,12 +7,20 @@ const path = require('path')
 
 async function downloadFiles(downloadFolder) {
   const lastkajenFolderArray = await getFolderIDsFromLastkajen()
+  console.log('-------')
+  console.log('Found folders:')
+  console.log(JSON.stringify(lastkajenFolderArray, undefined, 4))
+  console.log('-------')
   for (const lastkajenFolder of lastkajenFolderArray) {
-    await downloadNVDBFile(
-      lastkajenFolder.folderId,
-      lastkajenFolder.targetFilename,
-      downloadFolder
-    )
+    try {
+      await downloadNVDBFile(
+        lastkajenFolder.folderId,
+        lastkajenFolder.targetFilename,
+        downloadFolder
+      )
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 
