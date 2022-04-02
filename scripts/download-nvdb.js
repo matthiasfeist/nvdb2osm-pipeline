@@ -72,6 +72,16 @@ async function getFolderIDsFromLastkajen() {
 }
 
 async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
+  const fullFilename = path.join(downloadFolder, targetFilename + '.zip')
+  console.groupEnd()
+  console.group(
+    'starting download.',
+    'folderID',
+    folderId,
+    ' => ',
+    fullFilename
+  )
+
   const folderDetailsResponse = await fetch(
     `https://lastkajen.trafikverket.se/api/DataPackage/GetDataPackageFiles/${folderId}`
   )
@@ -85,12 +95,14 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
 
   // find the link to request the download token:
   let filename = null
+  let sizeFromApi = ''
   folderDetailsJson.forEach((fileDetails) => {
     if (
       fileDetails.name?.includes('Shape.zip') ||
       fileDetails.name?.includes('Järnvägsnät_grundegenskaper.zip')
     ) {
       filename = fileDetails.name
+      sizeFromApi = fileDetails.size
     }
   })
   if (!filename) {
@@ -98,9 +110,14 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
       `can't find filename for ${targetFilename}. FolderId: ${folderId}`
     )
   }
+  console.log(
+    'folder details recieved and file name found:',
+    filename,
+    'size:',
+    sizeFromApi
+  )
 
   // retrieve the download token for this file:
-
   const downloadTokenResponse = await fetch(
     `https://lastkajen.trafikverket.se/services/api/file/GetDataPackageDownloadToken?id=${folderId}&fileName=${encodeURIComponent(
       filename
@@ -116,18 +133,11 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
   if (!downloadToken) {
     throw new Error('No Download Token given')
   }
+  console.log('download token recieved:', downloadToken)
 
   // download the file
-  const fullFilename = path.join(downloadFolder, targetFilename + '.zip')
-  console.log(
-    'downloading',
-    filename,
-    'folderID',
-    folderId,
-    ' => ',
-    fullFilename
-  )
-
+  console.log('starting download...')
+  console.time('download finished')
   const streamPipeline = util.promisify(stream.pipeline)
   const downloadResponse = await fetch(
     `https://lastkajen.trafikverket.se/api/File/GetDataPackageFile?token=${downloadToken}`
@@ -139,6 +149,8 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
     downloadResponse.body,
     fs.createWriteStream(fullFilename)
   )
+  console.timeEnd('download finished')
+  console.groupEnd()
 }
 
 const downloadFolder = path.normalize(process.argv[2])
