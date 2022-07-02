@@ -19,7 +19,7 @@ exports.handler = async function (event, context) {
     'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash',
     'export NVM_DIR="$HOME/.nvm"',
     '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
-    'nvm install tls/*',
+    'nvm install lts/*',
 
     // install python and avtivate
     'yum install python3 -y',
