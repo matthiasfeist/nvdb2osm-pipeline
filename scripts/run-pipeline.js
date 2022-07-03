@@ -35,11 +35,11 @@ for (const nvdbFile of downloadedFiles) {
 
   // Upload generated shape files to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.zip" --acl public-read`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/split/ --no-progress --recursive --exclude="*" --include="*.zip" --acl public-read`
   )
   // Upload split logs to S3
   sh.exec(
-    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/shp/ --no-progress --recursive --exclude="*" --include="*.log" --acl public-read --content-type text/plain`
+    `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/split/ --no-progress --recursive --exclude="*" --include="*.log" --acl public-read --content-type text/plain`
   )
 
   // now run the conversion for every splitted file

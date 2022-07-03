@@ -103,8 +103,10 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
   let sizeFromApi = ''
   folderDetailsJson.forEach((fileDetails) => {
     if (
-      fileDetails.name?.includes('Shape.zip') ||
-      fileDetails.name?.includes('Järnvägsnät_grundegenskaper.zip')
+      fileDetails.name?.includes('GeoPackage.zip') ||
+      fileDetails.name?.includes(
+        'Järnvägsnät_grundegenskaper2_0_GeoPackage.zip'
+      )
     ) {
       filename = fileDetails.name
       sizeFromApi = fileDetails.size
