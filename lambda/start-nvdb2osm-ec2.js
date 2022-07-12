@@ -22,8 +22,9 @@ exports.handler = async function (event, context) {
     'nvm install lts/*',
 
     // install python and avtivate
-    'yum install python3 -y',
-    'python3 -m venv python-env',
+    'amazon-linux-extras enable python3.8',
+    'yum install python38 -y',
+    'python3.8 -m venv python-env',
     'source ./python-env/bin/activate',
     'pip install pip --upgrade',
 
