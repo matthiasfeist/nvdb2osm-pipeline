@@ -8,8 +8,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prettier": "^2.0.5",
-    "serverless": "^2.28.0",
+    "prettier": "^2.7.1",
+    "serverless": "^2.72.3",
     "serverless-plugin-log-retention": "^2.0.0"
   },
   "prettier": {
@@ -17,9 +17,10 @@
     "semi": false
   },
   "dependencies": {
-    "date-fns": "^2.25.0",
+    "date-fns": "^2.28.0",
     "mustache": "^4.2.0",
-    "node-fetch": "^2.6.1",
-    "shelljs": "^0.8.4"
+    "node-fetch": "^2.6.7",
+    "shelljs": "^0.8.5",
+    "yargs": "^17.5.1"
   }
 }

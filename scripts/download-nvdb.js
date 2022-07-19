@@ -5,11 +5,23 @@ const stream = require('stream')
 const util = require('util')
 const lanskodList = require('./lanskod.json')
 const path = require('path')
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
 
-async function downloadFiles(downloadFolder) {
-  const lastkajenFolderArray = await getFolderIDsFromLastkajen()
+async function downloadFiles(downloadFolder, lanskod) {
+  let lastkajenFolderArray = await getFolderIDsFromLastkajen()
+
+  if (lanskod !== 'all') {
+    const onlyDownload = lanskod.split(',')
+    lastkajenFolderArray = lastkajenFolderArray.filter(
+      (v) =>
+        onlyDownload.includes(v.targetFilename) || v.targetFilename === 'rail'
+    )
+  }
+
   console.log('Found folders:')
-  console.table(lastkajenFolderArray)
+  console.log(lastkajenFolderArray)
+
   for (const lastkajenFolder of lastkajenFolderArray) {
     try {
       await downloadNVDBFile(
@@ -160,9 +172,21 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
   console.groupEnd()
 }
 
-const downloadFolder = path.normalize(process.argv[2])
-if (!downloadFolder) {
-  throw new Error('No download folder param found')
-}
+const argv = yargs(hideBin(process.argv))
+  .option('downloadpath', {
+    alias: 'p',
+    demandOption: true,
+    normalize: true,
+    type: 'string',
+    description: 'Path to download the files into',
+  })
+  .option('lanskod', {
+    alias: 'l',
+    demandOption: true,
+    type: 'string',
+    description:
+      'länskod to download (use comma to download more, use "all" to download all)',
+  }).argv
+
 console.log(new Date().toString())
-downloadFiles(downloadFolder)
+downloadFiles(argv.downloadpath, argv.lanskod)

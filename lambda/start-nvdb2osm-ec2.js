@@ -2,6 +2,11 @@ const AWS = require('aws-sdk')
 const ec2 = new AWS.EC2()
 
 exports.handler = async function (event, context) {
+  let downloadLanskod = 'all'
+  if (!event.downloadLanskod) {
+    downloadLanskod = event.downloadLanskod
+  }
+
   const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
   const userData = [
     '#!/bin/bash',
@@ -37,11 +42,11 @@ exports.handler = async function (event, context) {
     'mkdir -p workdir/download',
     'export UPLOAD_BUCKET_NAME=' + UPLOAD_BUCKET_NAME,
 
-    'node scripts/download-nvdb.js ./workdir/download | tee download.log',
-    `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/ --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
+    `node scripts/download-nvdb.js -p ./workdir/download -l ${downloadLanskod} | tee download.log`,
+    `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/download-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
 
     'node scripts/run-pipeline.js | tee pipeline.log',
-    `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/ --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
+    `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/pipeline-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
 
     // done
     'shutdown -h',
@@ -72,7 +77,9 @@ exports.handler = async function (event, context) {
     TagSpecifications: [
       {
         ResourceType: 'instance',
-        Tags: [{ Key: 'Name', Value: 'nvdb2osm-pipeline-run' }],
+        Tags: [
+          { Key: 'Name', Value: 'nvdb2osm-pipeline-run-' + downloadLanskod },
+        ],
       },
     ],
   }
