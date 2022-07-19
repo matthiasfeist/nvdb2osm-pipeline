@@ -3,9 +3,10 @@ const ec2 = new AWS.EC2()
 
 exports.handler = async function (event, context) {
   let downloadLanskod = 'all'
-  if (!event.downloadLanskod) {
+  if (event.downloadLanskod) {
     downloadLanskod = event.downloadLanskod
   }
+  console.log(downloadLanskod)
 
   const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
   const userData = [
