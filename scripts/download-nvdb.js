@@ -42,7 +42,7 @@ async function getFolderIDsFromLastkajen() {
   if (!response.ok) {
     throw new Error(
       'Trafikverket Lastkajen DataPackage/GetDataPackages responed with',
-      trafVerkResponse.status
+      response.status
     )
   }
   const responseData = await response.json()
