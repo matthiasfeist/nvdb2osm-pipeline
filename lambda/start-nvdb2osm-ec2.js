@@ -25,7 +25,7 @@ exports.handler = async function (event, context) {
     'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash',
     'export NVM_DIR="$HOME/.nvm"',
     '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
-    'nvm install lts/*',
+    'nvm install lts/gallium', // to get node 16, node 18 has problems on the current AWS AMI
 
     // install python and avtivate
     'amazon-linux-extras enable python3.8',
