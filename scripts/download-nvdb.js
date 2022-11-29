@@ -8,8 +8,14 @@ const path = require('path')
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
 
-async function downloadFiles(downloadFolder, lanskod) {
-  let lastkajenFolderArray = await getFolderIDsFromLastkajen()
+async function downloadFiles(downloadFolder, lanskod, username, password) {
+  const bearerToken = await getLoginToken(username, password)
+  if (!bearerToken) {
+    console.log('Login was not successful. No Bearer token returned')
+    return
+  }
+
+  let lastkajenFolderArray = await getFolderIDsFromLastkajen(bearerToken)
 
   if (lanskod !== 'all') {
     const onlyDownload = lanskod.split(',')
@@ -27,7 +33,8 @@ async function downloadFiles(downloadFolder, lanskod) {
       await downloadNVDBFile(
         lastkajenFolder.folderId,
         lastkajenFolder.targetFilename,
-        downloadFolder
+        downloadFolder,
+        bearerToken
       )
     } catch (error) {
       console.log(error)
@@ -35,14 +42,45 @@ async function downloadFiles(downloadFolder, lanskod) {
   }
 }
 
-async function getFolderIDsFromLastkajen() {
+async function getLoginToken(username, password) {
+  try {
+    const response = await fetch(
+      'https://lastkajen.trafikverket.se/api/Identity/Login',
+      {
+        method: 'post',
+        body: JSON.stringify({
+          UserName: username,
+          Password: password,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
+    if (!response.ok) {
+      throw new Error(
+        'Trafikverket Lastkajen Login responed with ' + response.status
+      )
+    }
+    const responseData = await response.json()
+    return responseData.access_token
+  } catch (err) {
+    console.log(err)
+    return null
+  }
+}
+
+async function getFolderIDsFromLastkajen(bearerToken) {
   const response = await fetch(
-    'https://lastkajen.trafikverket.se/api/DataPackage/GetDataPackages'
+    'https://lastkajen.trafikverket.se/api/DataPackage/GetPublishedDataPackages',
+    {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+      },
+    }
   )
   if (!response.ok) {
     throw new Error(
-      'Trafikverket Lastkajen DataPackage/GetDataPackages responed with',
-      response.status
+      'Trafikverket Lastkajen DataPackage/GetDataPackages responed with' +
+        response.status
     )
   }
   const responseData = await response.json()
@@ -88,7 +126,12 @@ async function getFolderIDsFromLastkajen() {
   return result.sort(() => Math.random() - 0.5)
 }
 
-async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
+async function downloadNVDBFile(
+  folderId,
+  targetFilename,
+  downloadFolder,
+  bearerToken
+) {
   const fullFilename = path.join(downloadFolder, targetFilename + '.zip')
   console.groupEnd()
   console.group(
@@ -100,12 +143,17 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
   )
 
   const folderDetailsResponse = await fetch(
-    `https://lastkajen.trafikverket.se/api/DataPackage/GetDataPackageFiles/${folderId}`
+    `https://lastkajen.trafikverket.se/api/DataPackage/GetDataPackageFiles/${folderId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+      },
+    }
   )
   if (!folderDetailsResponse.ok) {
     throw new Error(
-      `Trafikverket Lastkajen DataPackage/GetDataPackageFiles/${folderId} responed with`,
-      trafVerkResponse.status
+      `Trafikverket Lastkajen DataPackage/GetDataPackageFiles/${folderId} responed with ` +
+        folderDetailsResponse.status
     )
   }
   const folderDetailsJson = await folderDetailsResponse.json()
@@ -173,6 +221,20 @@ async function downloadNVDBFile(folderId, targetFilename, downloadFolder) {
 }
 
 const argv = yargs(hideBin(process.argv))
+  .option('username', {
+    alias: 'user',
+    demandOption: true,
+    normalize: true,
+    type: 'string',
+    description: 'username for Lastkajen',
+  })
+  .option('password', {
+    alias: 'pass',
+    demandOption: true,
+    normalize: true,
+    type: 'string',
+    description: 'password for Lastkajen',
+  })
   .option('downloadpath', {
     alias: 'p',
     demandOption: true,
@@ -185,8 +247,8 @@ const argv = yargs(hideBin(process.argv))
     demandOption: true,
     type: 'string',
     description:
-      'länskod to download (use comma to download more, use "all" to download all)',
+      'länskod to download (use comma to download multiple, use "all" to download all)',
   }).argv
 
 console.log(new Date().toString())
-downloadFiles(argv.downloadpath, argv.lanskod)
+downloadFiles(argv.downloadpath, argv.lanskod, argv.username, argv.password)
