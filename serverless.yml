@@ -25,6 +25,8 @@ functions:
     environment:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
+      LASTKAJEN_USER: ${ssm:/lastkajen-user}
+      LASTKAJEN_PASS: ${ssm:/lastkajen-pass~true}
 
   generateIndexHtml:
     handler: lambda/generate-index-html.handler

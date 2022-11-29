@@ -9,6 +9,8 @@ exports.handler = async function (event, context) {
   console.log(downloadLanskod)
 
   const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
+  const LASTKAJEN_USER = process.env.LASTKAJEN_USER
+  const LASTKAJEN_PASS = process.env.LASTKAJEN_PASS
   const userData = [
     '#!/bin/bash',
     'shutdown -h +1440', // 1 day. just to make sure we're not running an expensive server forever in case something goes wrong
@@ -43,7 +45,7 @@ exports.handler = async function (event, context) {
     'mkdir -p workdir/download',
     'export UPLOAD_BUCKET_NAME=' + UPLOAD_BUCKET_NAME,
 
-    `node scripts/download-nvdb.js -p ./workdir/download -l ${downloadLanskod} | tee download.log`,
+    `node scripts/download-nvdb.js -p ./workdir/download -l ${downloadLanskod} --user ${LASTKAJEN_USER} --pass ${LASTKAJEN_PASS} | tee download.log`,
     `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/download-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
 
     'node scripts/run-pipeline.js | tee pipeline.log',
