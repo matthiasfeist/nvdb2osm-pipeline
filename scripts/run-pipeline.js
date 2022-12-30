@@ -29,11 +29,12 @@ for (const nvdbFile of downloadedFiles) {
 
   sh.rm('-r', 'output/')
   sh.mkdir('output')
-  sh.exec(
-    `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ &> output/split_${lanskod}.log`
-  )
+  const splitCommand = `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ &> output/split_${lanskod}.log`
+  console.log('Running Split command: ' + splitCommand)
+  sh.exec(splitCommand)
 
   // Upload generated shape files to S3
+  console.log('Uploading files to S3')
   sh.exec(
     `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/split/ --no-progress --recursive --exclude="*" --include="*.zip" --acl public-read`
   )
@@ -75,6 +76,7 @@ for (const nvdbFile of downloadedFiles) {
   }
 
   // Upload files to S3
+  console.log('Uploading files to S3')
   sh.exec(
     `aws s3 cp output/ s3://${UPLOAD_BUCKET_NAME}/osm/ --no-progress --recursive --exclude="*" --include="*.osm" --include="*-split.zip" --acl public-read`
   )
