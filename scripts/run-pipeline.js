@@ -30,8 +30,8 @@ for (const nvdbFile of downloadedFiles) {
   sh.rm('-r', 'output/')
   sh.mkdir('output')
   sh.exec(
-    `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ 2>&1`
-  ).to(`output/split_${lanskod}.log`)
+    `python split_nvdb_data.py --lanskod_filter ${lanskod} "${nvdbFile}" output/ &> output/split_${lanskod}.log`
+  )
 
   // Upload generated shape files to S3
   sh.exec(
@@ -63,9 +63,9 @@ for (const nvdbFile of downloadedFiles) {
       console.log('Railway file not found. Skipping.')
     }
 
-    const nvdb2osmCmd = `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" ${railFileCmdParams} ${splitCmdParams} 2>&1`
+    const nvdb2osmCmd = `python nvdb2osm.py "${kommunFile}" "output/${kommunName}.osm" --municipality_filter="${kommunName}" ${railFileCmdParams} ${splitCmdParams} &> output/${kommunName}.log`
     console.log('Running nvdb2osm script: ', nvdb2osmCmd)
-    sh.exec(nvdb2osmCmd).to(`output/${kommunName}.log`)
+    sh.exec(nvdb2osmCmd)
 
     if (splitCmdParams !== '') {
       const zipCmd = `zip -rmj "output/${kommunName}-split.zip" "output/${kommunName}-split/"`
