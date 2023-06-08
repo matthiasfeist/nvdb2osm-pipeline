@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk')
+const AWS = require('@aws-sdk/client-s3')
 const s3 = new AWS.S3()
 const path = require('path')
 const fs = require('fs')
@@ -18,22 +18,21 @@ exports.handler = async function (event, context) {
     encoding: 'utf-8',
   })
   const output = Mustache.render(template, { data, stats })
-  await s3
-    .putObject({
-      Bucket: UPLOAD_BUCKET_NAME,
-      Key: 'index.html',
-      Body: output,
-      ACL: 'public-read',
-      ContentType: 'text/html',
-      CacheControl: 'No-Cache',
-    })
-    .promise()
+  await s3.putObject({
+    Bucket: UPLOAD_BUCKET_NAME,
+    Key: 'index.html',
+    Body: output,
+    ACL: 'public-read',
+    ContentType: 'text/html',
+    CacheControl: 'No-Cache',
+  })
 }
 
 async function getData(UPLOAD_BUCKET_NAME) {
-  const osmAndLogsListingResponse = await s3
-    .listObjectsV2({ Bucket: UPLOAD_BUCKET_NAME, Prefix: 'osm/' })
-    .promise()
+  const osmAndLogsListingResponse = await s3.listObjectsV2({
+    Bucket: UPLOAD_BUCKET_NAME,
+    Prefix: 'osm/',
+  })
 
   const kommunFiles = {}
   osmAndLogsListingResponse.Contents?.forEach((s3File) => {
