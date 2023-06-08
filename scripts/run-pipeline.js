@@ -50,7 +50,7 @@ for (const nvdbFile of downloadedFiles) {
       splitCmdParams = `--split_file="data/${kommunName}-split.geojson" --split_dir="output/${kommunName}-split"`
       sh.mkdir(`output/${kommunName}-split`)
     } else {
-      console.log('Split file not found. ', `data/${kommunName}-split.geojson`)
+      console.log('No split file found. ', `data/${kommunName}-split.geojson`)
     }
 
     let railFileCmdParams = '--skip_railway'
