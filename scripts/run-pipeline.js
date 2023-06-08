@@ -10,10 +10,6 @@ if (!UPLOAD_BUCKET_NAME) {
   process.exit(1)
 }
 
-// install atorger's code
-sh.exec('git clone --depth 1 https://github.com/atorger/nvdb2osm.git')
-sh.exec('pip install -r nvdb2osm/requirements.txt')
-
 // run the splitting of the "länsfiler"
 sh.cd('nvdb2osm')
 

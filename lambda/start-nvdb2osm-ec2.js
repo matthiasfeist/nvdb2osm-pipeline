@@ -1,12 +1,10 @@
-const AWS = require('aws-sdk')
-const ec2 = new AWS.EC2()
+const { EC2Client, RunInstancesCommand } = require('@aws-sdk/client-ec2')
 
 exports.handler = async function (event, context) {
-  let downloadLanskod = 'all'
-  if (event.downloadLanskod) {
-    downloadLanskod = event.downloadLanskod
-  }
-  console.log(downloadLanskod)
+  const downloadLanskod = event.downloadLanskod ? event.downloadLanskod : 'all'
+  const onlyPrepareEnv = event.onlyPrepareEnv ? event.onlyPrepareEnv : false
+
+  console.log('run props (event):', event)
 
   const UPLOAD_BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME
   const LASTKAJEN_USER = process.env.LASTKAJEN_USER
@@ -27,36 +25,43 @@ exports.handler = async function (event, context) {
     'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash',
     'export NVM_DIR="$HOME/.nvm"',
     '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
-    'nvm install lts/gallium', // to get node 16, node 18 has problems on the current AWS AMI
+    'nvm install lts/Hydrogen', // node 18
 
     // install python and avtivate
-    'amazon-linux-extras enable python3.8',
-    'yum install python38 -y',
-    'python3.8 -m venv python-env',
+    'yum install python -y',
+    'python -m venv python-env',
     'source ./python-env/bin/activate',
     'pip install pip --upgrade',
 
     // clone the project
     'git clone --depth 1 https://github.com/matthiasfeist/nvdb2osm-pipeline.git',
     'cd nvdb2osm-pipeline/',
-    'npm i -production',
+    'npm i --omit=dev',
 
-    // run the pipeline
+    // download the source files from lastkajen
     'mkdir -p workdir/download',
     'export UPLOAD_BUCKET_NAME=' + UPLOAD_BUCKET_NAME,
-
     `node scripts/download-nvdb.js -p ./workdir/download -l ${downloadLanskod} --user ${LASTKAJEN_USER} --pass ${LASTKAJEN_PASS} | tee download.log`,
     `aws s3 cp download.log s3://${UPLOAD_BUCKET_NAME}/logs/download-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
 
-    'node scripts/run-pipeline.js | tee pipeline.log',
-    `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/pipeline-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`,
-
-    // done
-    'shutdown -h',
+    // install torger's nvdb2osm script in the workdir directory
+    'cd workdir',
+    'git clone --depth 1 https://github.com/atorger/nvdb2osm.git',
+    'pip install -r nvdb2osm/requirements.txt',
+    'cd ..',
   ]
 
+  // now run the pipeline script
+  if (!onlyPrepareEnv) {
+    userData.push('node scripts/run-pipeline.js | tee pipeline.log')
+    userData.push(
+      `aws s3 cp pipeline.log s3://${UPLOAD_BUCKET_NAME}/logs/pipeline-${downloadLanskod}.log --no-progress --acl public-read --content-type 'text/plain; charset="UTF-8"'`
+    )
+    userData.push('shutdown -h')
+  }
+
   const params = {
-    ImageId: 'ami-02a6bfdcf8224bd77', // Amazon Linux 2 AMI
+    ImageId: 'ami-04980462b81b515f6', // Amazon Linux 2 AMI
     InstanceType: 'c5.xlarge', // to get at least 8GB of RAM, otherwise we can't process the large stockholm file
     KeyName: 'nvdb2osm-ec2',
     MaxCount: 1,
@@ -86,6 +91,8 @@ exports.handler = async function (event, context) {
       },
     ],
   }
-  const result = await ec2.runInstances(params).promise()
+  const client = new EC2Client()
+  const command = new RunInstancesCommand(params)
+  const result = await client.send(command)
   console.log(result)
 }

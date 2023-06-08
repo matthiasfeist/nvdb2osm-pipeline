@@ -1,5 +1,5 @@
 service: nvdb2osm-pipeline
-frameworkVersion: '2'
+frameworkVersion: '3'
 
 package:
   patterns:
@@ -9,7 +9,7 @@ package:
 provider:
   name: aws
   region: eu-north-1
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   iamManagedPolicies:
     - !Ref LaunchEc2InstancesPolicy
     - !Ref DataBucketAccessManagedPolicy
@@ -25,8 +25,8 @@ functions:
     environment:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
-      LASTKAJEN_USER: ${ssm:/lastkajen-user}
-      LASTKAJEN_PASS: ${ssm:/lastkajen-pass~true}
+      LASTKAJEN_USER: ${ssm:/nvdb2osm/lastkajen/user}
+      LASTKAJEN_PASS: ${ssm:/nvdb2osm/lastkajen/pass}
 
   generateIndexHtml:
     handler: lambda/generate-index-html.handler
