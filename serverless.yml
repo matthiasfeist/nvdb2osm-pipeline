@@ -21,7 +21,7 @@ functions:
     timeout: 120 # 2 minutes
     memorySize: 128
     events:
-      - schedule: cron(0 5 1,15 * ? *) # needs to be in sync with the S3 remove rule below
+      - schedule: cron(0 5 15 * ? *) # needs to be in sync with the S3 remove rule below
     environment:
       INSTANCE_PROFILE_ARN: !GetAtt Ec2InstanceProfileForDataConversion.Arn
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
