@@ -188,12 +188,17 @@ async function downloadNVDBFile(
   const downloadTokenResponse = await fetch(
     `https://lastkajen.trafikverket.se/services/api/file/GetDataPackageDownloadToken?id=${folderId}&fileName=${encodeURIComponent(
       filename
-    )}`
+    )}`,
+    {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+      },
+    }
   )
   if (!downloadTokenResponse.ok) {
     throw new Error(
       `Trafikverket Lastkajen GetDataPackageDownloadToken ${folderId} ${filename} responed with`,
-      trafVerkResponse.status
+      downloadTokenResponse.status
     )
   }
   const downloadToken = await downloadTokenResponse.json()
