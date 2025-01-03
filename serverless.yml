@@ -9,7 +9,7 @@ package:
 provider:
   name: aws
   region: eu-north-1
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   iamManagedPolicies:
     - !Ref LaunchEc2InstancesPolicy
     - !Ref DataBucketAccessManagedPolicy
@@ -32,7 +32,7 @@ functions:
     handler: lambda/generate-index-html.handler
     logRetentionInDays: 7
     events:
-      - schedule: rate(4 hours)
+      - schedule: rate(6 hours)
     environment:
       UPLOAD_BUCKET_NAME: !Ref UploadBucket
 
@@ -57,6 +57,14 @@ resources:
             - Id: RemoveOldFiles
               Status: Enabled
               ExpirationInDays: 90 #needs to be synched with the EC2 lambda above
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: ObjectWriter
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false            
 
     DataBucketAccessManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
