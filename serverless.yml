@@ -9,7 +9,7 @@ package:
 provider:
   name: aws
   region: eu-north-1
-  runtime: nodejs20.x
+  runtime: nodejs24.x
   iamManagedPolicies:
     - !Ref LaunchEc2InstancesPolicy
     - !Ref DataBucketAccessManagedPolicy
@@ -64,7 +64,7 @@ resources:
           BlockPublicAcls: false
           BlockPublicPolicy: false
           IgnorePublicAcls: false
-          RestrictPublicBuckets: false            
+          RestrictPublicBuckets: false
 
     DataBucketAccessManagedPolicy:
       Type: AWS::IAM::ManagedPolicy
